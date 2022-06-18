@@ -24,7 +24,7 @@ resource google_storage_bucket "Output_Bucket"{
 resource "google_storage_bucket_object" "picture" {
   name = "vodafone_logo"
   bucket = google_storage_bucket.Input_Bucket.name
-  source = "myimage.jpg"
+  source = "vodafone.jpg"
 }
 
 resource "google_storage_bucket" "code_bucket" {
@@ -37,68 +37,34 @@ resource "google_storage_bucket" "code_bucket" {
   }
 }
 
-## Code of Event 
-resource "google_storage_bucket_object" "srccodeevent" {
-  name = "readObjectPy.zip"
-  bucket = google_storage_bucket.code_bucket.name
-  source = "readObjectPy.zip"
-}
-
-resource "google_cloudfunctions_function" "code_cf_from_tf" {
-  name = "cf-from-tf"
-  runtime = "python39"
-  description = "This is my first function from terraform script."
-
-  available_memory_mb = 256
-  source_archive_bucket = google_storage_bucket.code_bucket.name
-  source_archive_object = google_storage_bucket_object.srccodeevent.name
-  event_trigger {
-    event_type = "google.storage.object.finalize"
-    resource = google_storage_bucket.Input_Bucket.name
-  }
-  
-  timeout               = 360
-  entry_point = "hello_gcs"
-  labels = {
-    "env" = "tf_env"
-    "author" = "sandy"
-  }
-
-}
-
-## Code for HTTP Service
-resource "google_storage_bucket_object" "srccodehttp" {
+resource "google_storage_bucket_object" "srccodebucket" {
   name = "index.zip"
   bucket = google_storage_bucket.code_bucket.name
   source = "index.zip"
 }
 
-resource "google_cloudfunctions_function" "fun_from_tf" {
-  name = "fun-from-tf"
-  runtime = "nodejs14"
+resource "google_cloudfunctions_function" "code_cf_from_tf" {
+  name = "cf-from-tf"
+  runtime = "nodejs16"
   description = "This is my first function from terraform script."
 
   available_memory_mb = 128
   source_archive_bucket = google_storage_bucket.code_bucket.name
-  source_archive_object = google_storage_bucket_object.srccodehttp.name
+  source_archive_object = google_storage_bucket_object.srccodebucket.name
+  event_trigger {
+    event_type = "google.storage.object.finalize"
+    resource = google_storage_bucket.Input_Bucket.name
+  }
 
-  trigger_http = true
+  
+  timeout               = 60
   entry_point = "helloWorldtf"
   labels = {
     "env" = "tf_env"
     "author" = "sandy"
   }
 
-
 }
 
-resource "google_cloudfunctions_function_iam_member" "allowaccess" {
-  region = google_cloudfunctions_function.fun_from_tf.region
-  cloud_function = google_cloudfunctions_function.fun_from_tf.name
-
-  role = "roles/cloudfunctions.invoker"
-  member = "allUsers" 
-
-}
 
 
