@@ -16,11 +16,17 @@ def hello_gcs(event, context):
     print('Created: {}'.format(event['timeCreated']))
     print('Updated: {}'.format(event['updated']))
 
-    download_blob(
-        bucket_name=event['bucket'],
-        source_blob_name=event['name']
+    file_cont = download_blob(bucket_name=event['bucket'], source_blob_name=event['name']
         #destination_file_name="./file-1.txt"
     )
+    #detect_logos_uri("https://storage.cloud.google.com/poc-input-bucket-sandy/vodafone.jpg")
+    try:
+        print("Calling Image API ")
+        detect_logos_uri('gs://poc-input-bucket-sandy/' + str(event['name']))
+    except:
+        print("An exception occurred block 2")
+
+    upload_blob_from_memory("poc-output-bucket-sandy", file_cont, event['name'] + '_processed')
 
 def download_blob(bucket_name, source_blob_name):
 
@@ -36,7 +42,30 @@ def download_blob(bucket_name, source_blob_name):
             source_blob_name, bucket_name, file_cont
         )
     )
-    upload_blob_from_memory("poc-output-bucket-sandy", file_cont, source_blob_name)
+    return file_cont
+    
+
+def detect_logos_uri(uri):
+    """Detects logos in the file located in Google Cloud Storage or on the Web.
+    """
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
+    image = vision.Image()
+    image.source.image_uri = uri
+
+    response = client.logo_detection(image=image)
+    logos = response.logo_annotations
+    print('Logos:')
+
+    for logo in logos:
+        print(logo.description)
+
+    if response.error.message:
+        raise Exception(
+            '{}\nFor more info on error messages, check: '
+            'https://cloud.google.com/apis/design/errors'.format(
+                response.error.message))
+
 def upload_blob_from_memory(bucket_name, contents, destination_blob_name):
 
     storage_client = storage.Client()
