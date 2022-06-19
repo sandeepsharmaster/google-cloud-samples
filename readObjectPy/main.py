@@ -22,11 +22,11 @@ def hello_gcs(event, context):
     #detect_logos_uri("https://storage.cloud.google.com/poc-input-bucket-sandy/vodafone.jpg")
     try:
         print("Calling Image API ")
-        detect_logos_uri('gs://poc-input-bucket-sandy/' + str(event['name']))
+        logo = detect_logos_uri('gs://poc-input-bucket-sandy/' + str(event['name']))
     except:
         print("An exception occurred block 2")
 
-    upload_blob_from_memory("poc-output-bucket-sandy", file_cont, event['name'] + '_processed')
+    upload_blob_from_memory("poc-output-bucket-sandy", file_cont, event['name'] + '_' + logo)
 
 def download_blob(bucket_name, source_blob_name):
 
@@ -56,8 +56,9 @@ def detect_logos_uri(uri):
     response = client.logo_detection(image=image)
     logos = response.logo_annotations
     print('Logos:')
-
+    first_logo = ''
     for logo in logos:
+        first_logo = logo.description
         print(logo.description)
 
     if response.error.message:
@@ -65,6 +66,7 @@ def detect_logos_uri(uri):
             '{}\nFor more info on error messages, check: '
             'https://cloud.google.com/apis/design/errors'.format(
                 response.error.message))
+    return first_logo
 
 def upload_blob_from_memory(bucket_name, contents, destination_blob_name):
 
