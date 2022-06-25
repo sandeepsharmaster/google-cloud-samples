@@ -1,3 +1,41 @@
+locals {
+  common_tags = {
+    Owner = "Sandeep Sharma"
+    Description = "POC"
+  }
+}
+
+resource "google_storage_bucket" "Input_Bucket" {
+  name          = var.first_bucket
+  storage_class = var.storage_class
+  location      = "US-CENTRAL1"
+  labels = {
+    "env"    = "env"
+    "author" = "sandy"
+  }
+  uniform_bucket_level_access = true
+}
+
+output "first_bucket" {
+  value = google_storage_bucket.Input_Bucket.url
+}
+
+resource "google_storage_bucket" "Output_Bucket" {
+  name          = var.second_bucket
+  storage_class = "STANDARD"
+  location      = "US-CENTRAL1"
+  labels = {
+    "env"    = "env"
+    "author" = "sandy"
+  }
+  uniform_bucket_level_access = true
+}
+
+output "second_bucket" {
+  value = google_storage_bucket.Output_Bucket.url
+}
+
+
 # Enables the Cloud Run API
 resource "google_project_service" "run_api" {
   service = "run.googleapis.com"
@@ -13,7 +51,8 @@ resource "google_cloud_run_service" "run_service" {
   template {
     spec {
       containers {
-        image = "gcr.io/google-samples/hello-app:1.0"
+        image = "us.gcr.io/poc-sandy/cloudruntest:1.0.0"
+        #image = "docker.pkg.dev/sandeepsoprasteria/imageprocessing"
       }
     }
   }

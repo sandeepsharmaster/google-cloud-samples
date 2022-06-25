@@ -8,19 +8,9 @@ terraform {
 }
 provider "google" {
   # Configuration options
-  project     = "poc-sandy"
+  project     = "poc-sandy-354205"
   region      = "us-central1"
   zone        = "us-central1-a"
   credentials = "keys.json"
 }
-
-
-
-
-
-
-
-
-
-
 

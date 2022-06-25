@@ -1,4 +1,11 @@
 
+locals {
+  common_tags = {
+    Owner = "Sandeep Sharma"
+    Description = "POC"
+  }
+}
+
 resource "google_storage_bucket" "Input_Bucket" {
   name          = var.first_bucket
   storage_class = var.storage_class
